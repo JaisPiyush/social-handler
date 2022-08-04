@@ -139,7 +139,7 @@ class SH_Social_Icons_WIdget extends WP_Widget {
 
     public function widget($args, $instance) {
         echo wp_kses_post( $args['before_widget'] );
-        do_action( 'sh_social_icons_widget_output', $args, $instance );
+        do_action( 'sh_social_icons_widget_output', array($args, $instance) );
         echo wp_kses_post( $args["after_widget"] );
     }
 
@@ -178,3 +178,61 @@ class SH_Social_Icons_WIdget extends WP_Widget {
 
     }
 }
+
+
+function sh_social_icons_output_widget_title($arg) {
+    $args = $arg[0];
+    $instance = $arg[1];
+    if(!empty($instance['title'])) {
+        if(!empty($args['before_title'])){
+            echo wp_kses_post($args['before_title']);
+        }
+
+        echo esc_html($instance['title']);
+        if(!empty($args['after_title'])){
+            echo wp_kses_post($args['after_title']);
+        }
+    }
+}
+
+add_action('sh_social_icons_widget_output', 'sh_social_icons_output_widget_title');
+
+function sh_social_icons_widget_content($arg){
+    $args = $arg[0];
+    $instance = $arg[1];
+    $social_profiles = sh_get_social_profiles();
+    if(! empty($social_profiles)){
+        ?>
+        <ul class="sh-social-icons">
+        <?php
+        foreach ($social_profiles as $social_profile){
+            $profile_url = get_theme_mod( $social_profile['id'] );
+
+			// if we have a no value - url.
+			if ( empty( $profile_url ) ) {
+				continue; // continue to the next social profile.
+			}
+
+			// if we don't have a specified class.
+			if ( empty ( $social_profile['class'] ) ) {
+
+				// use the label for form a class.
+				$social_profile['class'] = strtolower( sanitize_title_with_dashes( $social_profile['label'] ) );
+
+			}
+
+			// build the markup for this social profile.
+			?>
+
+			<li class="sh-social-icons__item sh-social-icons__item--<?php echo esc_attr( $social_profile['class'] ); ?>">
+				<a target="_blank" class="sh-social-icons__item-link" href="<?php echo esc_url( $profile_url ); ?>">
+					<i class="icon-<?php echo esc_attr( $social_profile['class'] ); ?>"></i> <span><?php echo esc_html( $social_profile['label'] ); ?></span>
+				</a>
+			</li>
+
+			<?php
+        }
+    }
+}
+
+add_action( 'sh_social_icons_widget_output', 'sh_social_icons_widget_content' , 20, 2 );
